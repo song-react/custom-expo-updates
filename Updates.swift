@@ -98,7 +98,7 @@ internal final class Updates: Module, @unchecked Sendable {
       guard UUID(uuidString: manifest.id) != nil, manifest.runtimeVersion == Self.runtimeVersion,
         staging.isFileURL
       else {
-        throw UpdateFailure("更新与当前 App 版本不匹配或本地目录无效")
+        throw UpdateFailure("Invalid manifest or local directory")
       }
       let raw = try JSONSerialization.jsonObject(with: data) as? [String: Any]
       let extra = raw?["extra"] as? [String: Any]
@@ -107,7 +107,7 @@ internal final class Updates: Module, @unchecked Sendable {
       if let bundleIdentifier = ios?["bundleIdentifier"] as? String,
         bundleIdentifier != Bundle.main.bundleIdentifier
       {
-        throw UpdateFailure("更新的应用标识与当前 App 不匹配")
+        throw UpdateFailure("Application identifier mismatch")
       }
       let manager = FileManager.default
       guard
@@ -120,7 +120,7 @@ internal final class Updates: Module, @unchecked Sendable {
         try Self.contentHash(staging.appendingPathComponent(manifest.launchAsset.filename))
           == manifest.launchAsset.hash
       else {
-        throw UpdateFailure("本地更新文件不完整")
+        throw UpdateFailure("Invalid local assets")
       }
       let folder = UUID().uuidString
       try manager.createDirectory(at: Self.directory, withIntermediateDirectories: true)
@@ -129,7 +129,7 @@ internal final class Updates: Module, @unchecked Sendable {
         at: staging, to: Self.directory.appendingPathComponent(folder, isDirectory: true))
       try JSONEncoder().encode(folder).write(
         to: Self.directory.appendingPathComponent("active.json"), options: .atomic)
-      appContext.reloadAppAsync("在线更新完成")
+      appContext.reloadAppAsync("Package applied")
     }
   }
 }

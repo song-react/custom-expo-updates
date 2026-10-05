@@ -67,7 +67,6 @@ if (!__DEV__ && Object.keys(_current.assets).length) {
       }) => ImageResolvedAssetSource
     ) => void;
   };
-  // 图片、字体、音视频的 require 统一解析到完整下载的资源目录。
   _resolve.setCustomSourceTransformer(_resolver => {
     const _asset = _resolver.asset;
     const _scale = _resolve.pickScale(_asset.scales, PixelRatio.get());
@@ -112,7 +111,7 @@ const _check = async (): Promise<Update | undefined> => {
       'expo-runtime-version': _current.runtimeVersion,
     },
   });
-  if (!_response.ok) throw new Error(`检查更新失败：HTTP ${_response.status}`);
+  if (!_response.ok) throw new Error(`HTTP ${_response.status}`);
   if (_response.status === 204) return;
 
   const _contentType = _response.headers.get('content-type') ?? '';
@@ -123,20 +122,20 @@ const _check = async (): Promise<Update | undefined> => {
     const _boundary = _contentType.match(/boundary=(?:"([^"]+)"|([^;\s]+))/i);
     const _delimiter = _boundary?.[1] ?? _boundary?.[2];
     if (!_delimiter || !_text.includes(`--${_delimiter}--`)) {
-      throw new Error('更新响应的 multipart 格式无效');
+      throw new Error('Invalid multipart response');
     }
     const _parts: Record<string, string> = {};
     for (const _part of _text.split(`--${_delimiter}`).slice(1, -1)) {
       const [_headers, ..._body] = _part.split(/\r?\n\r?\n/);
       const _name = _headers.match(/\bname="?([^";\r\n]+)"?/i)?.[1];
       if (_name) {
-        if (_name in _parts) throw new Error('更新响应包含重复内容');
+        if (_name in _parts) throw new Error('Duplicate response part');
         _parts[_name] = _body.join('\n\n').trim();
       }
     }
     if (_parts.directive) {
       if (JSON.parse(_parts.directive).type === 'noUpdateAvailable') return;
-      throw new Error('不支持此更新指令');
+      throw new Error('Unsupported directive');
     }
     _manifest = JSON.parse(_parts.manifest);
     _assetRequestHeaders = _parts.extensions
@@ -152,7 +151,7 @@ const _check = async (): Promise<Update | undefined> => {
     !Number.isFinite(_createdAt.getTime()) ||
     _manifest.runtimeVersion !== _current.runtimeVersion
   ) {
-    throw new Error('更新与当前 App 版本不匹配或时间无效');
+    throw new Error('Invalid manifest');
   }
   if (_createdAt.getTime() <= (_currentlyRunning.createdAt?.getTime() ?? 0))
     return;
@@ -215,7 +214,7 @@ const _fetchUpdateAsync = async () => {
       new Set(_assets.map(_asset => _asset.key + _asset.fileExtension)).size !==
         _assets.length
     ) {
-      throw new Error('更新资源信息无效');
+      throw new Error('Invalid asset metadata');
     }
     _stage.create();
     for (const [_index, _asset] of _assets.entries()) {
@@ -230,7 +229,7 @@ const _fetchUpdateAsync = async () => {
           Base64url
         ) !== _asset.hash
       ) {
-        throw new Error(`更新文件校验失败：${_asset.key}`);
+        throw new Error(`Asset verification failed: ${_asset.key}`);
       }
       _useUpdates.setState({ downloadProgress: (_index + 1) / _assets.length });
     }
@@ -260,7 +259,7 @@ export default {
     })),
   reloadAsync: async () => {
     if (_fetching) await _fetching;
-    if (!_downloaded) throw new Error('暂无已下载的更新');
+    if (!_downloaded) throw new Error('No downloaded package');
     _useUpdates.setState({ isRestarting: true });
     try {
       await _module.replace(
