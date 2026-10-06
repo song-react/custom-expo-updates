@@ -226,7 +226,7 @@ const _fetchUpdateAsync = async () => {
   if (_available === undefined) await _checkForUpdateAsync();
   const _update = _available;
   if (!_update) return { isNew: false, manifest: undefined };
-  if (_downloaded?.update.createdAt.getTime() === _update.createdAt.getTime()) {
+  if (_downloaded?.update.updateId === _update.updateId) {
     return { isNew: false, manifest: _update.manifest };
   }
   const _stage = new Directory(
