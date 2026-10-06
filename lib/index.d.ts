@@ -5,6 +5,15 @@ type UpdateAsset = {
   url: string;
   fileExtension: string;
 };
+type UpdateConfig = {
+  version?: string;
+  ios?: {
+    bundleIdentifier?: string;
+  };
+  updates?: {
+    force?: boolean;
+  };
+};
 type Manifest = {
   id: string;
   createdAt: string;
@@ -12,11 +21,8 @@ type Manifest = {
   launchAsset: UpdateAsset;
   assets: UpdateAsset[];
   extra?: {
-    expoClient?: {
-      updates?: {
-        force?: boolean;
-      };
-    };
+    expoClient?: UpdateConfig;
+    expoConfig?: UpdateConfig;
   };
 };
 type Update = {

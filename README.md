@@ -8,7 +8,7 @@
 
 ```sh
 bun add github:song-react/custom-expo-updates
-bunx expo install expo-file-system expo-asset
+bunx expo install expo-file-system expo-asset expo-application
 ```
 
 在 `app.config.ts` 的 `plugins` 中加入 `'@song-react/custom-expo-updates'`，然后执行 `bunx expo prebuild --platform ios` 并重新构建原生 App。库通过 config plugin 注册原生模块；不要同时注册旧的 `@app/updates` 插件。
@@ -34,7 +34,9 @@ if (result.isAvailable) {
 - `Updates.createdAt`：当前运行包的时间，类型为 `Date | null`。
 - `Updates.useUpdates()`：订阅 `currentlyRunning`、`availableUpdate`、`downloadedUpdate`、`isChecking`、`checkError`、`isDownloading`、`downloadProgress`、`downloadError`、`isUpdatePending` 和 `isRestarting`。
 
-服务端时间大于当前时间才有更新；相同或更旧不更新。内置包时间取 bundle 的构建修改时间。下载完成不会修改当前运行信息，调用 `reloadAsync()` 切换成功后才读取新包信息。
+只有 manifest 的 `runtimeVersion`、`extra.expoClient`（或 `extra.expoConfig`）中的 `version` 与当前原生 App 版本相同，`ios.bundleIdentifier` 与当前原生 Bundle ID 相同，且 `createdAt` 严格晚于当前包时间时，才返回 `isAvailable: true` 并设置 `availableUpdate`。缺少匹配信息或当前包时间时视为没有更新；新检查会先清空旧的 `availableUpdate`。资产 metadata 也在检查阶段验证，下载时继续校验 SHA-256。
+
+内置包时间取 bundle 的构建修改时间。`buildNumber` 与内置 bundle 的哈希用于隔离不同原生构建的本地缓存，不参与更新包的时间比较。下载完成不会修改当前运行信息，调用 `reloadAsync()` 切换成功后才读取新包信息。
 
 保持 App 与更新包的原生依赖一致；修改原生代码或依赖时，应升级 App 版本并重新构建。没有后台检查、签名认证、数据库或失败回滚；SHA-256 只验证文件与 manifest 一致，不提供 manifest 身份认证。
 

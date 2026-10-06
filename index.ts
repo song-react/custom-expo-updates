@@ -3,6 +3,7 @@ import Base64url from 'crypto-js/enc-base64url';
 import 'crypto-js/lib-typedarrays';
 import SHA256 from 'crypto-js/sha256';
 import { requireNativeModule } from 'expo';
+import { applicationId } from 'expo-application';
 import type { AssetMetadata } from 'expo-asset';
 import { Directory, File, Paths } from 'expo-file-system';
 import { PixelRatio, type ImageResolvedAssetSource } from 'react-native';
@@ -15,13 +16,19 @@ type UpdateAsset = {
   fileExtension: string;
 };
 
+type UpdateConfig = {
+  version?: string;
+  ios?: { bundleIdentifier?: string };
+  updates?: { force?: boolean };
+};
+
 type Manifest = {
   id: string;
   createdAt: string;
   runtimeVersion: string;
   launchAsset: UpdateAsset;
   assets: UpdateAsset[];
-  extra?: { expoClient?: { updates?: { force?: boolean } } };
+  extra?: { expoClient?: UpdateConfig; expoConfig?: UpdateConfig };
 };
 
 type Update = {
@@ -148,13 +155,40 @@ const _check = async (): Promise<Update | undefined> => {
   if (
     !/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(_manifest.id) ||
     !Array.isArray(_manifest.assets) ||
-    !Number.isFinite(_createdAt.getTime()) ||
-    _manifest.runtimeVersion !== _current.runtimeVersion
+    !Number.isFinite(_createdAt.getTime())
   ) {
     throw new Error('Invalid manifest');
   }
-  if (_createdAt.getTime() <= (_currentlyRunning.createdAt?.getTime() ?? 0))
+  const _config = _manifest.extra?.expoClient ?? _manifest.extra?.expoConfig;
+  if (
+    !applicationId ||
+    !_current.runtimeVersion ||
+    _manifest.runtimeVersion !== _current.runtimeVersion ||
+    _config?.version !== _current.runtimeVersion ||
+    _config?.ios?.bundleIdentifier !== applicationId ||
+    !(_createdAt.getTime() > (_currentlyRunning.createdAt?.getTime() ?? NaN))
+  ) {
     return;
+  }
+  const _assets = [_manifest.launchAsset, ..._manifest.assets];
+  if (
+    !_assets.every(
+      _asset =>
+        _asset &&
+        typeof _asset.key === 'string' &&
+        /^[A-Za-z0-9_-]+$/.test(_asset.key) &&
+        typeof _asset.fileExtension === 'string' &&
+        /^\.[A-Za-z0-9]+$/.test(_asset.fileExtension) &&
+        typeof _asset.hash === 'string' &&
+        /^[A-Za-z0-9_-]{43}$/.test(_asset.hash) &&
+        typeof _asset.url === 'string' &&
+        /^https?:$/.test(new URL(_asset.url, _manifestUrl).protocol)
+    ) ||
+    new Set(_assets.map(_asset => _asset.key + _asset.fileExtension)).size !==
+      _assets.length
+  ) {
+    throw new Error('Invalid asset metadata');
+  }
   return {
     updateId: _manifest.id,
     runtimeVersion: _manifest.runtimeVersion,
@@ -167,7 +201,11 @@ const _check = async (): Promise<Update | undefined> => {
 const _checkForUpdateAsync = () => {
   if (_checking) return _checking;
   _available = undefined;
-  _useUpdates.setState({ isChecking: true, checkError: undefined });
+  _useUpdates.setState({
+    isChecking: true,
+    checkError: undefined,
+    availableUpdate: undefined,
+  });
   return (_checking = _check()
     .then(_update => {
       _available = _update ?? null;
@@ -202,20 +240,6 @@ const _fetchUpdateAsync = async () => {
   });
   try {
     const _assets = [_update.manifest.launchAsset, ..._update.manifest.assets];
-    if (
-      !_assets.every(
-        _asset =>
-          _asset &&
-          /^[A-Za-z0-9_-]+$/.test(_asset.key) &&
-          /^\.[A-Za-z0-9]+$/.test(_asset.fileExtension) &&
-          /^[A-Za-z0-9_-]{43}$/.test(_asset.hash) &&
-          /^https?:$/.test(new URL(_asset.url, _manifestUrl).protocol)
-      ) ||
-      new Set(_assets.map(_asset => _asset.key + _asset.fileExtension)).size !==
-        _assets.length
-    ) {
-      throw new Error('Invalid asset metadata');
-    }
     _stage.create();
     for (const [_index, _asset] of _assets.entries()) {
       const _url = new URL(_asset.url, _manifestUrl);
