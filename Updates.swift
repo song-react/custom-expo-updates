@@ -23,14 +23,13 @@ private final class UpdateFailure: GenericException<String>, @unchecked Sendable
 
 internal final class Updates: Module, @unchecked Sendable {
   private static let embeddedURL = Bundle.main.url(forResource: "main", withExtension: "jsbundle")
-  private static let embeddedHash = embeddedURL.flatMap { try? contentHash($0) } ?? ""
   private static let runtimeVersion =
     Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
   private static let directory = FileManager.default.urls(
     for: .applicationSupportDirectory, in: .userDomainMask)[0]
     .appendingPathComponent("app-updates", isDirectory: true)
     .appendingPathComponent(
-      "\(runtimeVersion)-\(Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "")-\(embeddedHash)",
+      "\(runtimeVersion)-\(Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "")",
       isDirectory: true
     )
 
@@ -75,8 +74,7 @@ internal final class Updates: Module, @unchecked Sendable {
       return [
         "id": manifest?.id as Any? ?? NSNull(),
         "createdAt": createdAt as Any? ?? NSNull(),
-        "hash": url == Self.embeddedURL
-          ? Self.embeddedHash : url.flatMap { try? Self.contentHash($0) } ?? "",
+        "hash": url.flatMap { try? Self.contentHash($0) } ?? "",
         "runtimeVersion": Self.runtimeVersion,
         "assets": directory.map { directory in
           Dictionary(

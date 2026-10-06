@@ -4,7 +4,6 @@ import 'crypto-js/lib-typedarrays';
 import SHA256 from 'crypto-js/sha256';
 import { requireNativeModule } from 'expo';
 import { applicationId } from 'expo-application';
-import type { AssetMetadata } from 'expo-asset';
 import { Directory, File, Paths } from 'expo-file-system';
 import { PixelRatio, type ImageResolvedAssetSource } from 'react-native';
 import { create } from 'zustand';
@@ -59,7 +58,7 @@ const {
   ..._current
 } = _module.getCurrent();
 const _manifestUrl = 'http://localhost:3000/api/manifest';
-let _available: Update | null | undefined;
+let _checked = false;
 let _downloaded: { update: Update; directory: Directory } | undefined;
 
 if (!__DEV__ && Object.keys(_current.assets).length) {
@@ -68,7 +67,7 @@ if (!__DEV__ && Object.keys(_current.assets).length) {
     pickScale: (_scales: number[], _deviceScale: number) => number;
     setCustomSourceTransformer: (
       _transformer: (_resolver: {
-        asset: AssetMetadata;
+        asset: { scales: number[]; hash: string; fileHashes?: string[] };
         fromSource: (_uri: string) => ImageResolvedAssetSource;
         defaultAsset: () => ImageResolvedAssetSource;
       }) => ImageResolvedAssetSource
@@ -200,7 +199,7 @@ const _check = async (): Promise<Update | undefined> => {
 
 const _checkForUpdateAsync = () => {
   if (_checking) return _checking;
-  _available = undefined;
+  _checked = false;
   _useUpdates.setState({
     isChecking: true,
     checkError: undefined,
@@ -208,7 +207,7 @@ const _checkForUpdateAsync = () => {
   });
   return (_checking = _check()
     .then(_update => {
-      _available = _update ?? null;
+      _checked = true;
       _useUpdates.setState({ availableUpdate: _update });
       return { isAvailable: !!_update, manifest: _update?.manifest };
     })
@@ -223,8 +222,8 @@ const _checkForUpdateAsync = () => {
 };
 
 const _fetchUpdateAsync = async () => {
-  if (_available === undefined) await _checkForUpdateAsync();
-  const _update = _available;
+  if (!_checked) await _checkForUpdateAsync();
+  const _update = _useUpdates.getState().availableUpdate;
   if (!_update) return { isNew: false, manifest: undefined };
   if (_downloaded?.update.updateId === _update.updateId) {
     return { isNew: false, manifest: _update.manifest };

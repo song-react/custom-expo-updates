@@ -1,22 +1,9 @@
 {
   "name": "@song-react/custom-expo-updates",
   "version": "1.0.0",
-  "private": true,
-  "description": "适用于 Expo 57 iOS 项目的轻量热更新模块，兼容 Expo Updates manifest 协议",
   "main": "lib/index.js",
-  "types": "lib/index.d.ts",
-  "files": [
-    "lib",
-    "index.ts",
-    "*.swift",
-    "app.plugin.js"
-  ],
   "scripts": {
     "build": "tsc"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/song-react/custom-expo-updates.git"
   },
   "dependencies": {
     "crypto-js": "^4.2.0",
@@ -25,7 +12,6 @@
   "peerDependencies": {
     "expo": "^57.0.0",
     "expo-application": "^57.0.0",
-    "expo-asset": "^57.0.0",
     "expo-file-system": "^57.0.0",
     "react": "^19.2.0",
     "react-native": "^0.86.0"

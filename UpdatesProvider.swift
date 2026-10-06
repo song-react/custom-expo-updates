@@ -8,7 +8,7 @@ internal final class ExpoModulesProvider: ExpoBaseModulesProvider {
 
   override func getReactDelegateHandlers() -> [ExpoReactDelegateHandlerTupleType] {
     super.getReactDelegateHandlers() + [
-      (packageName: "@song-react/custom-expo-updates", handler: UpdatesReactDelegateHandler.self)
+      (packageName: "updates", handler: UpdatesReactDelegateHandler.self)
     ]
   }
 }
