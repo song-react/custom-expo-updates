@@ -2,6 +2,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-Class _Nullable UptCreateHandler(Class base, NSURL * _Nullable (^bundleURL)(void));
+NSString *UptF0(NSUInteger a);
+Class _Nullable UptF1(Class a, NSURL * _Nullable (^b)(void));
 
 NS_ASSUME_NONNULL_END

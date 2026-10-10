@@ -2,7 +2,7 @@ internal import ExpoModulesCore
 import Foundation
 
 // Expo 从 Swift 调用该方法，需要 dynamic 将调用转到 OC 动态子类。
-private class UptDelegate: ExpoReactDelegateHandler {
+private class U4: ExpoReactDelegateHandler {
   override dynamic func bundleURL(reactDelegate: ExpoReactDelegate) -> URL? { nil }
 }
 
@@ -15,8 +15,8 @@ internal final class ExpoModulesProvider: ExpoBaseModulesProvider {
   override func getReactDelegateHandlers() -> [ExpoReactDelegateHandlerTupleType] {
     super.getReactDelegateHandlers() + [
       (
-        packageName: ["u", "pt"].joined(),
-        handler: UptCreateHandler(UptDelegate.self) {
+        packageName: UptF0(16),
+        handler: UptF1(U4.self) {
           #if DEBUG
             return nil
           #else

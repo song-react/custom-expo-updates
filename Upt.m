@@ -1,28 +1,100 @@
 #import "Upt.h"
 #import <objc/runtime.h>
 
-Class UptCreateHandler(Class base, NSURL *(^bundleURL)(void)) {
-  static Class handler;
-  static dispatch_once_t once;
-  dispatch_once(&once, ^{
-    NSString *name = [@[@"U", @"pt", @"Re", @"actDe", @"leg", @"ateH", @"andler"]
-        componentsJoinedByString:@""];
-    SEL selector = NSSelectorFromString(
-        [@[@"bun", @"dleU", @"RLWith", @"React", @"Delegate:"] componentsJoinedByString:@""]);
-    Method method = class_getInstanceMethod(base, selector);
-    if (!method) return;
-    Class cls = objc_allocateClassPair(base, name.UTF8String, 0);
-    if (!cls) return;
-    IMP implementation = imp_implementationWithBlock(^NSURL *(id self, id delegate) {
-      return bundleURL();
+NSString *UptF0(NSUInteger a) {
+  static NSArray<NSString *> *b;
+  static dispatch_once_t c;
+  dispatch_once(&c, ^{
+    // volatile 避免 Release 优化将解码结果折叠成明文；只在首次调用时解码。
+    static const volatile uint8_t d[] = {
+      230, 118, 147, 172, 145, 241, 221, 110, 31, 58, 55, 137, 161, 235, 21, 226,
+      133, 45, 148, 148, 95, 49, 200, 161, 176, 70, 36, 29, 254, 159, 48, 125,
+      25, 104, 68, 30, 20, 215, 153, 42, 19, 238, 92, 83, 117, 149, 207, 75,
+      37, 176, 143, 26, 168, 153, 174, 150, 169, 2, 231, 152, 76, 251, 141, 7,
+      175, 17, 119, 141, 91, 15, 32, 15, 111, 19, 8, 67, 196, 8, 108, 115,
+      161, 99, 255, 110, 137, 102, 22, 161, 113, 214, 77, 251, 163, 82, 118, 161,
+      113, 95, 155, 152, 11, 219, 32, 6, 165, 24, 154, 145, 15, 240, 115, 29,
+      235, 170, 97, 101, 153, 211, 245, 165, 9, 195, 49, 252, 233, 141, 150, 77,
+      251, 163, 82, 118, 161, 113, 90, 139, 48, 207, 127, 14, 242, 60, 90, 192,
+      159, 46, 239, 144, 126, 106, 196, 182, 136, 108, 116, 185, 234, 159, 173, 37,
+      179, 146, 224, 178, 84, 3, 73, 215, 93, 178, 30, 137, 227, 79, 67, 255,
+      142, 2, 87, 121, 102, 82, 50, 138, 253, 117, 253, 87, 174, 108, 205, 13,
+      83, 183, 209, 203, 62, 30, 110, 2, 233, 141, 83, 183, 209, 200, 58, 114,
+      100, 126, 136, 230, 227, 164, 95, 164, 212, 235, 51, 7, 127, 100, 227, 109,
+      217, 242, 123, 191, 149, 151, 219, 29, 214, 110, 71, 31, 237, 91, 3, 195,
+      88, 103, 160, 97, 221, 81, 28, 115, 41, 159, 108, 136, 193, 69, 207, 29,
+      217, 97, 152, 33, 93, 249, 163, 197, 70, 119, 54, 201, 219, 92, 49, 235,
+      156, 254, 228, 246, 173, 213, 111, 190, 72, 120, 213, 37, 217, 123, 14, 223,
+      131, 146, 134, 163, 112, 217, 204, 164, 27, 227, 76, 113, 145, 152, 52, 235,
+      51, 27, 125, 223, 141, 217, 231, 141, 76, 82, 22, 31, 95, 191, 73, 100,
+      229, 29, 140, 68, 233, 52,
+    };
+    static const uint16_t e[][3] = {
+      {0, 3, 141},
+      {3, 4, 196},
+      {7, 13, 8},
+      {20, 2, 54},
+      {22, 9, 171},
+      {31, 14, 15},
+      {45, 11, 249},
+      {56, 6, 200},
+      {62, 15, 200},
+      {77, 4, 101},
+      {81, 8, 9},
+      {89, 26, 149},
+      {115, 11, 4},
+      {126, 15, 213},
+      {141, 11, 93},
+      {152, 13, 229},
+      {165, 3, 118},
+      {168, 10, 58},
+      {178, 7, 37},
+      {185, 5, 16},
+      {190, 10, 168},
+      {200, 10, 140},
+      {210, 3, 225},
+      {213, 16, 198},
+      {229, 16, 201},
+      {245, 16, 15},
+      {261, 15, 169},
+      {276, 23, 248},
+      {299, 27, 19},
+    };
+    NSMutableArray<NSString *> *f = [NSMutableArray arrayWithCapacity:sizeof(e) / sizeof(e[0])];
+    for (NSUInteger g = 0; g < sizeof(e) / sizeof(e[0]); g++) {
+      uint8_t h[27];
+      uint8_t i = e[g][2];
+      for (NSUInteger j = 0; j < e[g][1]; j++) {
+        uint8_t k = d[e[g][0] + j];
+        h[j] = k ^ i;
+        i = (uint8_t)(i * 33 + k + j);
+      }
+      [f addObject:[[NSString alloc] initWithBytes:h length:e[g][1] encoding:NSUTF8StringEncoding]];
+    }
+    b = [f copy];
+  });
+  return b[a];
+}
+
+Class UptF1(Class a, NSURL *(^b)(void)) {
+  static Class c;
+  static dispatch_once_t d;
+  dispatch_once(&d, ^{
+    SEL e = NSSelectorFromString(UptF0(28));
+    Method f = class_getInstanceMethod(a, e);
+    if (!f) return;
+    Class g = objc_allocateClassPair(a, UptF0(27).UTF8String, 0);
+    if (!g) return;
+    IMP h = imp_implementationWithBlock(^NSURL *(id i, id j) {
+      return b();
     });
-    if (!class_addMethod(cls, selector, implementation, method_getTypeEncoding(method))) {
-      imp_removeBlock(implementation);
-      objc_disposeClassPair(cls);
+    if (!class_addMethod(g, e, h, method_getTypeEncoding(f))) {
+      imp_removeBlock(h);
+      objc_disposeClassPair(g);
       return;
     }
-    objc_registerClassPair(cls);
-    handler = cls;
+    objc_registerClassPair(g);
+    c = g;
   });
-  return handler;
+  return c;
 }
