@@ -15,6 +15,8 @@ bunx expo install expo-file-system expo-application
 
 原生模块名为 `upt`，Swift 类型使用 `Upt` 前缀，源码为 `Upt.swift` 和 `UptProvider.swift`。从旧命名版本升级时，执行 `bunx expo prebuild --clean --platform ios` 清除旧源码引用，再重新构建原生 App；该改动不能仅通过 OTA 下发。
 
+`Upt.m` 使用 Objective-C runtime 动态创建 `UptReactDelegateHandler`，插件自动复制 OC 源码和头文件并接入 Swift 桥接头。Swift 仅保留 `UptDelegate` 适配基类，通过 `dynamic` 将 Expo 的 Swift 方法调用转到 OC 实现；Debug 使用 Metro，Release 每次调用都读取当前更新包地址。
+
 仅验证了 Expo 57。依赖 Expo Modules 的原生项目可使用，Expo Go 无法加载这个自定义模块。Debug 继续使用 Metro，完整更新流程需要 Release 包。
 
 ## 服务与 API

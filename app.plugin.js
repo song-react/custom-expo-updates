@@ -15,17 +15,31 @@ module.exports = _config => {
     return _props;
   });
   return withXcodeProject(_config, _props => {
-    for (const _name of ['Upt.swift', 'UptProvider.swift']) {
+    for (const _name of ['Upt.swift', 'UptProvider.swift', 'Upt.m', 'Upt.h']) {
       const _file = `${_props.modRequest.projectName}/${_name}`;
       fs.copyFileSync(
         path.join(__dirname, _name),
         path.join(_props.modRequest.platformProjectRoot, _file)
       );
+      if (_name === 'Upt.h') continue;
       IOSConfig.XcodeUtils.addBuildSourceFileToGroup({
         filepath: _file,
         groupName: _props.modRequest.projectName,
         project: _props.modResults,
       });
+    }
+    const _header = path.join(
+      _props.modRequest.platformProjectRoot,
+      IOSConfig.XcodeUtils.unquote(
+        _props.modResults.getBuildProperty(
+          'SWIFT_OBJC_BRIDGING_HEADER',
+          undefined,
+          _props.modRequest.projectName
+        )
+      )
+    );
+    if (!fs.readFileSync(_header, 'utf8').includes('#import "Upt.h"')) {
+      fs.appendFileSync(_header, '\n#import "Upt.h"\n');
     }
     return _props;
   });

@@ -144,14 +144,3 @@ internal final class Upt: Module, @unchecked Sendable {
     }
   }
 }
-
-@objc(UptReactDelegateHandler)
-internal final class UptReactDelegateHandler: ExpoReactDelegateHandler {
-  override func bundleURL(reactDelegate: ExpoReactDelegate) -> URL? {
-    #if DEBUG
-      return nil
-    #else
-      return Upt.bundleURL()
-    #endif
-  }
-}
