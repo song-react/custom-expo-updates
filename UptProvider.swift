@@ -20,7 +20,7 @@ internal final class ExpoModulesProvider: ExpoBaseModulesProvider {
           #if DEBUG
             return nil
           #else
-            return Upt.bundleURL()
+            return Upt.f0()
           #endif
         } as! ExpoReactDelegateHandler.Type
       )

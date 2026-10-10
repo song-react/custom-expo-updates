@@ -2,65 +2,65 @@ import CryptoKit
 internal import ExpoModulesCore
 import Foundation
 
-private struct UptAsset: Decodable {
+private struct U0: Decodable {
   let key: String
   let hash: String
   let fileExtension: String
-  var filename: String { key + fileExtension }
+  var v0: String { key + fileExtension }
 }
 
-private struct UptManifest: Decodable {
+private struct U1: Decodable {
   let id: String
   let createdAt: String
   let runtimeVersion: String
-  let launchAsset: UptAsset
-  let assets: [UptAsset]
+  let launchAsset: U0
+  let assets: [U0]
 }
 
-private final class UptFailure: GenericException<String>, @unchecked Sendable {
+private final class U2: GenericException<String>, @unchecked Sendable {
+  override var code: String { ["ER", "R_U", "PT_F", "AIL", "URE"].joined() }
   override var reason: String { param }
 }
 
 internal final class Upt: Module, @unchecked Sendable {
-  private static let embeddedURL = Bundle.main.url(
+  private static let a0 = Bundle.main.url(
     forResource: ["ma", "in"].joined(), withExtension: ["jsb", "und", "le"].joined())
-  private static let runtimeVersion =
+  private static let a1 =
     Bundle.main.object(
       forInfoDictionaryKey: ["CFB", "undleSh", "ortVer", "sionSt", "ring"].joined()) as? String
     ?? ""
-  private static let directory = FileManager.default.urls(
+  private static let a2 = FileManager.default.urls(
     for: .applicationSupportDirectory, in: .userDomainMask)[0]
     .appendingPathComponent(["ap", "p-up", "dat", "es"].joined(), isDirectory: true)
     .appendingPathComponent(
-      "\(runtimeVersion)-\(Bundle.main.object(forInfoDictionaryKey: ["CFB", "und", "leVer", "sion"].joined()) as? String ?? "")",
+      "\(a1)-\(Bundle.main.object(forInfoDictionaryKey: ["CFB", "und", "leVer", "sion"].joined()) as? String ?? "")",
       isDirectory: true
     )
 
-  static func bundleURL() -> URL? {
-    if let data = try? Data(
-      contentsOf: directory.appendingPathComponent(["act", "ive.j", "son"].joined())),
-      let folder = try? JSONDecoder().decode(UUID.self, from: data),
-      let manifest = try? manifest(at: directory.appendingPathComponent(folder.uuidString)),
-      UUID(uuidString: manifest.id) != nil,
-      manifest.runtimeVersion == runtimeVersion
+  static func f0() -> URL? {
+    if let a = try? Data(
+      contentsOf: a2.appendingPathComponent(["act", "ive.j", "son"].joined())),
+      let b = try? JSONDecoder().decode(UUID.self, from: a),
+      let c = try? f1(a2.appendingPathComponent(b.uuidString)),
+      UUID(uuidString: c.id) != nil,
+      c.runtimeVersion == a1
     {
-      let url = directory.appendingPathComponent(folder.uuidString).appendingPathComponent(
-        manifest.launchAsset.filename)
-      if FileManager.default.fileExists(atPath: url.path) { return url }
+      let d = a2.appendingPathComponent(b.uuidString).appendingPathComponent(c.launchAsset.v0)
+      if FileManager.default.fileExists(atPath: d.path) { return d }
     }
     return nil
   }
 
-  private static func manifest(at directory: URL) throws -> UptManifest {
+  private static func f1(_ a: URL) throws -> U1 {
     try JSONDecoder().decode(
-      UptManifest.self,
+      U1.self,
       from: Data(
-        contentsOf: directory.appendingPathComponent(["man", "ife", "st.j", "son"].joined()))
+        contentsOf: a.appendingPathComponent(["man", "ife", "st.j", "son"].joined()))
     )
   }
 
-  private static func contentHash(_ url: URL) throws -> String {
-    Data(SHA256.hash(data: try Data(contentsOf: url, options: .mappedIfSafe))).base64EncodedString()
+  private static func f2(_ a: URL) throws -> String {
+    Data(SHA256.hash(data: try Data(contentsOf: a, options: .mappedIfSafe))).base64EncodedString()
       .replacingOccurrences(of: "+", with: "-")
       .replacingOccurrences(of: "/", with: "_")
       .replacingOccurrences(of: "=", with: "")
@@ -69,78 +69,77 @@ internal final class Upt: Module, @unchecked Sendable {
   func definition() -> ModuleDefinition {
     Name(["u", "pt"].joined())
     Function(["getC", "urr", "ent"].joined()) {
-      let url = (self.appContext?.bundleURL).flatMap { $0.isFileURL ? $0 : nil }
-      let directory = url?.deletingLastPathComponent()
-      let manifest = directory.flatMap { try? Self.manifest(at: $0) }
-      let createdAt =
-        manifest?.createdAt
-        ?? Self.embeddedURL.flatMap {
+      let a = (self.appContext?.bundleURL).flatMap { $0.isFileURL ? $0 : nil }
+      let b = a?.deletingLastPathComponent()
+      let c = b.flatMap { try? Self.f1($0) }
+      let d =
+        c?.createdAt
+        ?? Self.a0.flatMap {
           try? $0.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate
         }.map { ISO8601DateFormatter().string(from: $0) }
       return [
-        ["i", "d"].joined(): manifest?.id as Any? ?? NSNull(),
-        ["cre", "ate", "dAt"].joined(): createdAt as Any? ?? NSNull(),
-        ["ha", "sh"].joined(): url.flatMap { try? Self.contentHash($0) } ?? "",
-        ["runt", "imeV", "ersion"].joined(): Self.runtimeVersion,
-        ["as", "se", "ts"].joined(): directory.map { directory in
+        ["i", "d"].joined(): c?.id as Any? ?? NSNull(),
+        ["cre", "ate", "dAt"].joined(): d as Any? ?? NSNull(),
+        ["ha", "sh"].joined(): a.flatMap { try? Self.f2($0) } ?? "",
+        ["runt", "imeV", "ersion"].joined(): Self.a1,
+        ["as", "se", "ts"].joined(): b.map { e in
           Dictionary(
-            (manifest?.assets ?? []).map {
-              ($0.key, directory.appendingPathComponent($0.filename).absoluteString)
+            (c?.assets ?? []).map {
+              ($0.key, e.appendingPathComponent($0.v0).absoluteString)
             },
-            uniquingKeysWith: { first, _ in first }
+            uniquingKeysWith: { a, _ in a }
           )
         } ?? [:],
       ] as [String: Any]
     }
 
-    AsyncFunction(["rep", "la", "ce"].joined()) { (manifestJSON: String, staging: URL) in
-      guard let appContext = self.appContext else {
+    AsyncFunction(["rep", "la", "ce"].joined()) { (a: String, b: URL) in
+      guard let c = self.appContext else {
         throw Exceptions.AppContextLost()
       }
-      let data = Data(manifestJSON.utf8)
-      let manifest = try JSONDecoder().decode(UptManifest.self, from: data)
-      guard UUID(uuidString: manifest.id) != nil, manifest.runtimeVersion == Self.runtimeVersion,
-        staging.isFileURL
+      let d = Data(a.utf8)
+      let e = try JSONDecoder().decode(U1.self, from: d)
+      guard UUID(uuidString: e.id) != nil, e.runtimeVersion == Self.a1,
+        b.isFileURL
       else {
-        throw UptFailure(["E", "01"].joined())
+        throw U2(["E", "01"].joined())
       }
-      let raw = try JSONSerialization.jsonObject(with: data) as? [String: Any]
-      let extra = raw?[["ex", "tra"].joined()] as? [String: Any]
-      let config =
-        extra?[["exp", "oCl", "ient"].joined()] as? [String: Any] ?? extra?[
+      let f = try JSONSerialization.jsonObject(with: d) as? [String: Any]
+      let g = f?[["ex", "tra"].joined()] as? [String: Any]
+      let h =
+        g?[["exp", "oCl", "ient"].joined()] as? [String: Any] ?? g?[
           ["ex", "poCon", "fig"].joined()] as? [String: Any]
-      let ios = config?[["i", "os"].joined()] as? [String: Any]
-      if let bundleIdentifier = ios?[["bun", "dleId", "enti", "fier"].joined()] as? String,
-        bundleIdentifier != Bundle.main.bundleIdentifier
+      let i = h?[["i", "os"].joined()] as? [String: Any]
+      if let j = i?[["bun", "dleId", "enti", "fier"].joined()] as? String,
+        j != Bundle.main.bundleIdentifier
       {
-        throw UptFailure(["E", "02"].joined())
+        throw U2(["E", "02"].joined())
       }
-      let manager = FileManager.default
+      let k = FileManager.default
       guard
-        ([manifest.launchAsset] + manifest.assets).allSatisfy({ asset in
-          asset.key.range(
+        ([e.launchAsset] + e.assets).allSatisfy({ a in
+          a.key.range(
             of: ["^[A-Z", "a-z0", "-9_-]", "+$"].joined(), options: .regularExpression) != nil
-            && asset.fileExtension.range(
+            && a.fileExtension.range(
               of: ["^\\.", "[A-Za", "-z0-9]", "+$"].joined(), options: .regularExpression)
               != nil
-            && manager.fileExists(atPath: staging.appendingPathComponent(asset.filename).path)
+            && k.fileExists(atPath: b.appendingPathComponent(a.v0).path)
         }),
-        try Self.contentHash(staging.appendingPathComponent(manifest.launchAsset.filename))
-          == manifest.launchAsset.hash
+        try Self.f2(b.appendingPathComponent(e.launchAsset.v0)) == e.launchAsset.hash
       else {
-        throw UptFailure(["E", "03"].joined())
+        throw U2(["E", "03"].joined())
       }
-      let folder = UUID().uuidString
-      try manager.createDirectory(at: Self.directory, withIntermediateDirectories: true)
-      try data.write(
-        to: staging.appendingPathComponent(["man", "ife", "st.j", "son"].joined()), options: .atomic
+      let l = UUID().uuidString
+      try k.createDirectory(at: Self.a2, withIntermediateDirectories: true)
+      try d.write(
+        to: b.appendingPathComponent(["man", "ife", "st.j", "son"].joined()), options: .atomic
       )
-      try manager.moveItem(
-        at: staging, to: Self.directory.appendingPathComponent(folder, isDirectory: true))
-      try JSONEncoder().encode(folder).write(
-        to: Self.directory.appendingPathComponent(["act", "ive.j", "son"].joined()),
+      try k.moveItem(
+        at: b, to: Self.a2.appendingPathComponent(l, isDirectory: true))
+      try JSONEncoder().encode(l).write(
+        to: Self.a2.appendingPathComponent(["act", "ive.j", "son"].joined()),
         options: .atomic)
-      appContext.reloadAppAsync(["Pac", "kage ap", "plied"].joined())
+      c.reloadAppAsync(["Pac", "kage ap", "plied"].joined())
     }
   }
 }
