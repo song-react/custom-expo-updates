@@ -13,6 +13,8 @@ bunx expo install expo-file-system expo-application
 
 在 `app.config.ts` 的 `plugins` 中加入 `'@song-react/custom-expo-updates'`，然后执行 `bunx expo prebuild --platform ios` 并重新构建原生 App。库通过 config plugin 注册原生模块；不要同时注册旧的 `@app/updates` 插件。
 
+原生模块名为 `upt`，Swift 类型使用 `Upt` 前缀，源码为 `Upt.swift` 和 `UptProvider.swift`。从旧命名版本升级时，执行 `bunx expo prebuild --clean --platform ios` 清除旧源码引用，再重新构建原生 App；该改动不能仅通过 OTA 下发。
+
 仅验证了 Expo 57。依赖 Expo Modules 的原生项目可使用，Expo Go 无法加载这个自定义模块。Debug 继续使用 Metro，完整更新流程需要 Release 包。
 
 ## 服务与 API

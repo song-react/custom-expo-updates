@@ -15,7 +15,7 @@ module.exports = _config => {
     return _props;
   });
   return withXcodeProject(_config, _props => {
-    for (const _name of ['Updates.swift', 'UpdatesProvider.swift']) {
+    for (const _name of ['Upt.swift', 'UptProvider.swift']) {
       const _file = `${_props.modRequest.projectName}/${_name}`;
       fs.copyFileSync(
         path.join(__dirname, _name),

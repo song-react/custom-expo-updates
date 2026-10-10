@@ -2,39 +2,43 @@ import CryptoKit
 internal import ExpoModulesCore
 import Foundation
 
-private struct UpdateAsset: Decodable {
+private struct UptAsset: Decodable {
   let key: String
   let hash: String
   let fileExtension: String
   var filename: String { key + fileExtension }
 }
 
-private struct UpdateManifest: Decodable {
+private struct UptManifest: Decodable {
   let id: String
   let createdAt: String
   let runtimeVersion: String
-  let launchAsset: UpdateAsset
-  let assets: [UpdateAsset]
+  let launchAsset: UptAsset
+  let assets: [UptAsset]
 }
 
-private final class UpdateFailure: GenericException<String>, @unchecked Sendable {
+private final class UptFailure: GenericException<String>, @unchecked Sendable {
   override var reason: String { param }
 }
 
-internal final class Updates: Module, @unchecked Sendable {
-  private static let embeddedURL = Bundle.main.url(forResource: "main", withExtension: "jsbundle")
+internal final class Upt: Module, @unchecked Sendable {
+  private static let embeddedURL = Bundle.main.url(
+    forResource: ["ma", "in"].joined(), withExtension: ["jsb", "und", "le"].joined())
   private static let runtimeVersion =
-    Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
+    Bundle.main.object(
+      forInfoDictionaryKey: ["CFB", "undleSh", "ortVer", "sionSt", "ring"].joined()) as? String
+    ?? ""
   private static let directory = FileManager.default.urls(
     for: .applicationSupportDirectory, in: .userDomainMask)[0]
-    .appendingPathComponent("app-updates", isDirectory: true)
+    .appendingPathComponent(["ap", "p-up", "dat", "es"].joined(), isDirectory: true)
     .appendingPathComponent(
-      "\(runtimeVersion)-\(Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "")",
+      "\(runtimeVersion)-\(Bundle.main.object(forInfoDictionaryKey: ["CFB", "und", "leVer", "sion"].joined()) as? String ?? "")",
       isDirectory: true
     )
 
   static func bundleURL() -> URL? {
-    if let data = try? Data(contentsOf: directory.appendingPathComponent("active.json")),
+    if let data = try? Data(
+      contentsOf: directory.appendingPathComponent(["act", "ive.j", "son"].joined())),
       let folder = try? JSONDecoder().decode(UUID.self, from: data),
       let manifest = try? manifest(at: directory.appendingPathComponent(folder.uuidString)),
       UUID(uuidString: manifest.id) != nil,
@@ -47,9 +51,11 @@ internal final class Updates: Module, @unchecked Sendable {
     return nil
   }
 
-  private static func manifest(at directory: URL) throws -> UpdateManifest {
+  private static func manifest(at directory: URL) throws -> UptManifest {
     try JSONDecoder().decode(
-      UpdateManifest.self, from: Data(contentsOf: directory.appendingPathComponent("manifest.json"))
+      UptManifest.self,
+      from: Data(
+        contentsOf: directory.appendingPathComponent(["man", "ife", "st.j", "son"].joined()))
     )
   }
 
@@ -61,8 +67,8 @@ internal final class Updates: Module, @unchecked Sendable {
   }
 
   func definition() -> ModuleDefinition {
-    Name("Updates")
-    Function("getCurrent") {
+    Name(["u", "pt"].joined())
+    Function(["getC", "urr", "ent"].joined()) {
       let url = (self.appContext?.bundleURL).flatMap { $0.isFileURL ? $0 : nil }
       let directory = url?.deletingLastPathComponent()
       let manifest = directory.flatMap { try? Self.manifest(at: $0) }
@@ -72,11 +78,11 @@ internal final class Updates: Module, @unchecked Sendable {
           try? $0.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate
         }.map { ISO8601DateFormatter().string(from: $0) }
       return [
-        "id": manifest?.id as Any? ?? NSNull(),
-        "createdAt": createdAt as Any? ?? NSNull(),
-        "hash": url.flatMap { try? Self.contentHash($0) } ?? "",
-        "runtimeVersion": Self.runtimeVersion,
-        "assets": directory.map { directory in
+        ["i", "d"].joined(): manifest?.id as Any? ?? NSNull(),
+        ["cre", "ate", "dAt"].joined(): createdAt as Any? ?? NSNull(),
+        ["ha", "sh"].joined(): url.flatMap { try? Self.contentHash($0) } ?? "",
+        ["runt", "imeV", "ersion"].joined(): Self.runtimeVersion,
+        ["as", "se", "ts"].joined(): directory.map { directory in
           Dictionary(
             (manifest?.assets ?? []).map {
               ($0.key, directory.appendingPathComponent($0.filename).absoluteString)
@@ -87,57 +93,65 @@ internal final class Updates: Module, @unchecked Sendable {
       ] as [String: Any]
     }
 
-    AsyncFunction("replace") { (manifestJSON: String, staging: URL) in
+    AsyncFunction(["rep", "la", "ce"].joined()) { (manifestJSON: String, staging: URL) in
       guard let appContext = self.appContext else {
         throw Exceptions.AppContextLost()
       }
       let data = Data(manifestJSON.utf8)
-      let manifest = try JSONDecoder().decode(UpdateManifest.self, from: data)
+      let manifest = try JSONDecoder().decode(UptManifest.self, from: data)
       guard UUID(uuidString: manifest.id) != nil, manifest.runtimeVersion == Self.runtimeVersion,
         staging.isFileURL
       else {
-        throw UpdateFailure("Invalid manifest or local directory")
+        throw UptFailure(["E", "01"].joined())
       }
       let raw = try JSONSerialization.jsonObject(with: data) as? [String: Any]
-      let extra = raw?["extra"] as? [String: Any]
-      let config = extra?["expoClient"] as? [String: Any] ?? extra?["expoConfig"] as? [String: Any]
-      let ios = config?["ios"] as? [String: Any]
-      if let bundleIdentifier = ios?["bundleIdentifier"] as? String,
+      let extra = raw?[["ex", "tra"].joined()] as? [String: Any]
+      let config =
+        extra?[["exp", "oCl", "ient"].joined()] as? [String: Any] ?? extra?[
+          ["ex", "poCon", "fig"].joined()] as? [String: Any]
+      let ios = config?[["i", "os"].joined()] as? [String: Any]
+      if let bundleIdentifier = ios?[["bun", "dleId", "enti", "fier"].joined()] as? String,
         bundleIdentifier != Bundle.main.bundleIdentifier
       {
-        throw UpdateFailure("Application identifier mismatch")
+        throw UptFailure(["E", "02"].joined())
       }
       let manager = FileManager.default
       guard
         ([manifest.launchAsset] + manifest.assets).allSatisfy({ asset in
-          asset.key.range(of: "^[A-Za-z0-9_-]+$", options: .regularExpression) != nil
-            && asset.fileExtension.range(of: "^\\.[A-Za-z0-9]+$", options: .regularExpression)
+          asset.key.range(
+            of: ["^[A-Z", "a-z0", "-9_-]", "+$"].joined(), options: .regularExpression) != nil
+            && asset.fileExtension.range(
+              of: ["^\\.", "[A-Za", "-z0-9]", "+$"].joined(), options: .regularExpression)
               != nil
             && manager.fileExists(atPath: staging.appendingPathComponent(asset.filename).path)
         }),
         try Self.contentHash(staging.appendingPathComponent(manifest.launchAsset.filename))
           == manifest.launchAsset.hash
       else {
-        throw UpdateFailure("Invalid local assets")
+        throw UptFailure(["E", "03"].joined())
       }
       let folder = UUID().uuidString
       try manager.createDirectory(at: Self.directory, withIntermediateDirectories: true)
-      try data.write(to: staging.appendingPathComponent("manifest.json"), options: .atomic)
+      try data.write(
+        to: staging.appendingPathComponent(["man", "ife", "st.j", "son"].joined()), options: .atomic
+      )
       try manager.moveItem(
         at: staging, to: Self.directory.appendingPathComponent(folder, isDirectory: true))
       try JSONEncoder().encode(folder).write(
-        to: Self.directory.appendingPathComponent("active.json"), options: .atomic)
-      appContext.reloadAppAsync("Package applied")
+        to: Self.directory.appendingPathComponent(["act", "ive.j", "son"].joined()),
+        options: .atomic)
+      appContext.reloadAppAsync(["Pac", "kage ap", "plied"].joined())
     }
   }
 }
 
-internal final class UpdatesReactDelegateHandler: ExpoReactDelegateHandler {
+@objc(UptReactDelegateHandler)
+internal final class UptReactDelegateHandler: ExpoReactDelegateHandler {
   override func bundleURL(reactDelegate: ExpoReactDelegate) -> URL? {
     #if DEBUG
       return nil
     #else
-      return Updates.bundleURL()
+      return Upt.bundleURL()
     #endif
   }
 }

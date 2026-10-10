@@ -50,7 +50,7 @@ const _module = requireNativeModule<{
     _manifestJSON: string,
     _stagingDirectoryURI: string
   ) => Promise<void>;
-}>('Updates');
+}>('upt');
 
 const {
   id: _updateId,
